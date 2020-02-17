@@ -1,90 +1,88 @@
 class Calculator {
-	EMPTY_ANS = '';
+	EMPTY_ANSWER = '';
 	
 	constructor() {
 		this.screenAns = document.querySelector(['[previous-operand]']);
 		this.screenCur = document.querySelector('[current-operand]');
-		
 		this.clearAll();
 	}
 	
 	clearAll() {
-		this.curAns = this.EMPTY_ANS;
-		this.curText = "";
+		this.currentAnswer = this.EMPTY_ANSWER;
+		this.currentText = "";
 		this.bracketCount = 0;
-		this.lastAns = 0;
+		this.lastAnswer = 0;
 		this.updateScreen();
 	}
 	
 	updateScreen() {
-		this.screenAns.innerText = this.curAns;
-		this.screenCur.innerText = this.curText;
+		this.screenAns.innerText = this.currentAnswer;
+		this.screenCur.innerText = this.currentText;
 	}
 	
 	clearEntry() {
-		if (this.curText !== "") {
-			this.curText = this.curText.toString().slice(0, -1);
+		if (this.currentText !== "") {
+			this.currentText = this.currentText.toString().slice(0, -1);
 			this.updateScreen();
 		}
 	}
 	
-	pushNum(numbers) {
-		// handle brackets
+	pushNumber(numbers) {
+		this.bracketHandler(numbers);
+		
+		// Check if decimal exists, makes sure maximum # of decimals = 1. 
+		if (numbers === "." && this.currentText.includes('.')) return;
+		
+		this.currentText = this.currentText + "" + numbers;
+		this.updateScreen();
+	}
+
+	bracketHandler(numbers) {
+		// Counts brackets, restrict right bracket input iff bracketCount > 0.
 		if (numbers === '(')
 			this.bracketCount++;
 		if (numbers === ')' && this.bracketCount === 0) return;
 		if (numbers === ')')
 			this.bracketCount--;
-		
-		// dont add more than one decimal
-		if (numbers === "." && this.curText.includes('.'))
-			return;
-		
-		this.curText = this.curText + "" + numbers;
-		
-		this.updateScreen();
 	}
 	
-	pushOper(oper) {
-		if (this.curText !== "") {
-			let lastChar = this.curText.charAt(this.curText.length-1);
+	pushOperator(operator) {
+		if (this.currentText !== "") {
+			// Handles multiple operators being inputed. Max # of consecutive operators = 1.
+			let lastChar = this.currentText.charAt(this.currentText.length-1);
 			if (lastChar === '/' || lastChar === '*' || lastChar === '-' || lastChar === '+')
-				this.del();
+				this.clearEntry();
+	}
+	// If operand input on empty currentText display, currentText = previousAnswer.
+    else if (this.lastAnswer !== "") {
+      this.currentText = this.lastAnswer;
     }
-    else if (this.lastAns !== "") {
-      this.curText = this.lastAns;
-    }
-
-		if (oper == '÷')
-			this.pushNum('/');
+		// Handles division symbol.
+		if (operator == '÷')
+			this.pushNumber('/');
 		else
-			this.pushNum(oper);
+			this.pushNumber(operator);
 	}
 	
 	calculate() {
-		if (this.curText !== "") {
-			// close open brackets
-			while (this.bracketCount > 0) {
-				this.curText = this.curText + ")";
-				this.bracketCount--;
-			}
-			// imply that )( means multiply
-			this.curText = this.curText.split(")(").join(")*(");
+		if (this.currentText !== "") {
+			// Handles ')(' which implies multiplication
+			this.currentText = this.currentText.split(")(").join(")*(");
 			
 			// check if we need to incorporate the last answer
-			let startChar = this.curText.charAt(0);
+			let startChar = this.currentText.charAt(0);
 			if (startChar === '/' || startChar === '*' || startChar === '-' || startChar === '+')
-				this.curText = this.lastAns + "" + this.curText;
+				this.currentText = this.lastAnswer + "" + this.currentText;
 			
 			try {
-				let answer = eval(this.curText);
-				this.curAns = this.curText + " = " + answer;
-				this.curText = "";
-				this.lastAns = answer;
+				let answer = eval(this.currentText);
+				this.currentAnswer = this.currentText + " = " + answer;
+				this.currentText = "";
+				this.lastAnswer = answer;
 				this.updateScreen();
 			}
 			catch (err) {
-				this.curAns = "ERROR: " + err.message;
+				this.currentAnswer = "ERROR: " + err.message;
 				this.updateScreen();
 			}
 		}
@@ -113,12 +111,12 @@ equals.addEventListener('click', () => {
 
 numbers.forEach(numbers => {
 	numbers.addEventListener('click', () => {
-		calculator.pushNum(numbers.innerText);
+		calculator.pushNumber(numbers.innerText);
 	});
 });
 
 operators.forEach(operators => {
 	operators.addEventListener('click', () => {
-		calculator.pushOper(operators.innerText);
+		calculator.pushOperator(operators.innerText);
 	});
 });
