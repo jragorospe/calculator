@@ -5,6 +5,7 @@ body {
   padding: 0;
   margin: 0;
   background: gray;
+  width: 100%;
 }
 
 .calculator-grid {
@@ -14,7 +15,6 @@ body {
   min-height: 100vh;
   grid-template-columns: repeat(4, 100px);
   grid-template-rows: minmax(120px, auto) repeat(5, 100px);
-  width: 100%;
 }
 
 .calculator-grid > button {
